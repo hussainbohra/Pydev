@@ -44,6 +44,7 @@ import org.python.pydev.parser.jython.ast.stmtType;
 import org.python.pydev.parser.prettyprinterv2.PrettyPrinterV2;
 import org.python.pydev.parser.visitors.scope.ASTEntry;
 import org.python.pydev.parser.visitors.scope.EasyASTIteratorVisitor;
+import org.python.pydev.parser.visitors.scope.EasyASTIteratorWithLoop;
 
 public class NodeUtils {
 
@@ -751,25 +752,117 @@ public class NodeUtils {
             }
             
             if(last != null){
-    
-                StringBuffer buffer = new StringBuffer();
-                boolean first = true;
-                while (last != null){
-                    String name = last.getName();
-                    buffer.insert(0, name);
-                    last = last.parent;
-                    if(!first){
-                        buffer.insert(name.length(),".");
-                    }
-                    first = false;
-                }
-                return buffer.toString();
+            	return getFullMethodName(last);
             }
         }
         return null;
     }
 
-    
+    /**
+     * @param ASTEntry last
+     * @return classdef.method_name
+     */
+	public static String getFullMethodName(ASTEntry last) {
+		StringBuffer buffer = new StringBuffer();
+		boolean first = true;
+		while (last != null) {
+			String name = last.getName();
+			buffer.insert(0, name);
+			last = last.parent;
+			if (!first) {
+				buffer.insert(name.length(), ".");
+			}
+			first = false;
+		}
+		return buffer.toString();
+	}
+	
+	/**
+	 * Identify the context for both source and target line 
+	 * 
+	 * @param ASTEntry ast
+	 * @param int sourceLine
+	 * @param int targetLine
+	 * @return
+	 */
+	public static boolean isValidContextForSetNext(SimpleNode ast, int sourceLine, int targetLine) {
+		String sourceFunctionName = NodeUtils.getContextName(sourceLine, ast);
+		String targetFunctionName = NodeUtils.getContextName(targetLine + 1, ast);
+		if (sourceFunctionName.equals(targetFunctionName)) {
+
+			ASTEntry sourceAST = NodeUtils.getLoopContextName(sourceLine, ast);
+			ASTEntry targetAST = NodeUtils.getLoopContextName(targetLine + 1, ast);;
+			
+			if (targetAST == null){
+				return true; 	// Target line is not inside some loop
+			}
+			if (sourceAST == null && targetAST != null){
+				return false; // Source is outside loop and target is inside loop
+			}
+			if (sourceAST != null && targetAST != null){
+				// Both Source and Target is inside some loop
+				if(sourceAST.equals(targetAST)){
+					return true;
+				}
+				else{
+					ASTEntry last = sourceAST;
+					boolean retVal = false;
+					while (last != null){
+						ASTEntry parentAST = last.parent;
+						if (parentAST != null && parentAST.equals(targetAST)){
+							retVal = true;
+							break;
+						}
+						last = parentAST;
+					}
+					return retVal;
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Identify the for or while for a provided line number.
+	 * 
+	 * @param lineNumber
+	 * @param ast
+	 * @return
+	 */
+	public static ASTEntry getLoopContextName(int lineNumber, SimpleNode ast) {
+		ASTEntry loopContext = null;
+		if (ast != null) {
+			int highestBeginLine = 0;
+			// ASTEntry loopContext = null;
+			ArrayList<ASTEntry> forAndWhileList = new ArrayList<ASTEntry>();
+			EasyASTIteratorWithLoop visitor = EasyASTIteratorWithLoop
+					.create(ast);
+			Iterator<ASTEntry> forAndWhileIterator = visitor
+					.getForAndWhileIterator();
+			while (forAndWhileIterator.hasNext()) {
+				ASTEntry entry = forAndWhileIterator.next();
+				if ((entry.node.beginLine) < lineNumber
+						&& entry.endLine >= lineNumber) {
+					forAndWhileList.add(entry);
+					if (entry.node.beginLine > highestBeginLine) {
+						highestBeginLine = entry.node.beginLine;
+					}
+				}
+			}
+			Iterator<ASTEntry> forAndWhileListIterator = forAndWhileList
+					.iterator();
+			while (forAndWhileListIterator.hasNext()) {
+				ASTEntry astEntry = forAndWhileListIterator.next();
+				if (astEntry.node.beginLine == highestBeginLine) {
+					loopContext = astEntry;
+				}
+			}
+		}
+		return loopContext;
+	}
+
     protected static final String[] strTypes = new String[]{
         "'''",
         "\"\"\"",

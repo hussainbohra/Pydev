@@ -164,6 +164,10 @@ public class PyThread extends PlatformObject implements IThread {
         target.postCommand(new RunToLineCommand(target, AbstractDebuggerCommand.CMD_RUN_TO_LINE, id, line, funcName));
     }
 
+    public void setNextStatement(int line, String funcName){
+        isStepping = true;
+        target.postCommand(new RunToLineCommand(target, AbstractDebuggerCommand.CMD_SET_NEXT_STATEMENT, id, line, funcName));
+    }
 
     public IStackFrame[] getStackFrames() throws DebugException {
         if(isSuspended && stack != null){

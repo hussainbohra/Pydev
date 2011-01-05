@@ -5,7 +5,7 @@ import java.net.URI;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFilterMatcherDescriptor;
+//import org.eclipse.core.resources.IFilterMatcherDescriptor;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IProject;
@@ -122,16 +122,16 @@ public class WorkspaceStub implements IWorkspace{
     }
 
     
-    public IFilterMatcherDescriptor[] getFilterMatcherDescriptors() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    
-    public IFilterMatcherDescriptor getFilterMatcherDescriptor(String filterMatcherId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    public IFilterMatcherDescriptor[] getFilterMatcherDescriptors() {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
+//
+//    
+//    public IFilterMatcherDescriptor getFilterMatcherDescriptor(String filterMatcherId) {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
     
     public IProjectNatureDescriptor[] getNatureDescriptors() {

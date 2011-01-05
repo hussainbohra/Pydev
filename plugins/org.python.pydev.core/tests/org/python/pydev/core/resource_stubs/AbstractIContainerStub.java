@@ -4,14 +4,14 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceFilterDescription;
+//import org.eclipse.core.resources.IResourceFilterDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 //Only for 3.6 -- comment if you want to compile on earlier eclipse version
 
-import org.eclipse.core.resources.FileInfoMatcherDescription;
+//import org.eclipse.core.resources.FileInfoMatcherDescription;
 
 //End Only for 3.6
 
@@ -21,15 +21,15 @@ public class AbstractIContainerStub extends AbstractIResourceStub implements ICo
     
     
     //Only for 3.6 -- comment if you want to compile on earlier eclipse version
-	public IResourceFilterDescription createFilter(int type,
-			FileInfoMatcherDescription matcherDescription, int updateFlags, IProgressMonitor monitor)
-	throws CoreException {
-		throw new RuntimeException("Not implemented");
-	}
-	
-	public IResourceFilterDescription[] getFilters() throws CoreException {
-		throw new RuntimeException("Not implemented");
-	}
+//	public IResourceFilterDescription createFilter(int type,
+//			FileInfoMatcherDescription matcherDescription, int updateFlags, IProgressMonitor monitor)
+//	throws CoreException {
+//		throw new RuntimeException("Not implemented");
+//	}
+//	
+//	public IResourceFilterDescription[] getFilters() throws CoreException {
+//		throw new RuntimeException("Not implemented");
+//	}
 
     //End Only for 3.6
     
