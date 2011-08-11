@@ -93,7 +93,7 @@ class PyDBFrame:
                 if DictContains(mainDebugger.property_method_cache, filename):
                     if DictContains(mainDebugger.property_method_cache[filename], class_name):
                         for key, value in mainDebugger.property_method_cache[filename][class_name].items() :
-                            if curr_func_name in value or curr_func_name == 'encode':
+                            if curr_func_name in value:
                                 can_skip = True
             #global context is set with an empty name
             if curr_func_name in ('?', '<module>'):
