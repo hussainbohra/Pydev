@@ -46,6 +46,7 @@ from pydevd_comm import  CMD_CHANGE_VARIABLE, \
                          InternalSetNextStatementThread
 
 from pydevd_file_utils import NormFileToServer, GetFilenameAndBase
+import inspect
 import pydevd_import_class
 import pydevd_vars
 import traceback 
@@ -243,6 +244,9 @@ class PyDB:
         #find that thread alive anymore, we must remove it from this list and make the java side know that the thread
         #was killed.
         self._running_thread_ids = {} 
+
+        # Hash of all property methods for every file and classes in it {<filename>:{<classname>:[getx,setx]}}
+        self.property_method_cache = {}
                                 
         
     def FinishDebuggingSession(self):
@@ -878,6 +882,7 @@ class PyDB:
             if is_file_to_ignore:
                 return None
 
+            self.update_property_cache(frame);
             #each new frame...
             return additionalInfo.CreateDbFrame((self, filename, additionalInfo, t, frame)).trace_dispatch(frame, event, arg)
         
@@ -890,6 +895,33 @@ class PyDB:
                 #This can actually happen during the interpreter shutdown in Python 2.7
                 traceback.print_exc()
             return None
+
+    def update_property_cache(self, frame):
+        """ This method updates a property cache for all classes in every file
+        Identify all classes in the python file and determine all property attribute for a class
+        update all properties getter/setter method in a hash
+        property_method_cache = {<file_name> : {<class_name> : {<property_name> : [getter, setter]}}}
+        """
+        try:
+            filename, base = GetFilenameAndBase(frame)
+            if not DictContains(self.property_method_cache, filename):
+                module = inspect.getmodulename(frame.f_code.co_filename)
+                mod = pydevd_import_class.ImportName(module)
+                self.property_method_cache.update({filename : {}})
+                for clazz_name, clazz in inspect.getmembers(mod, inspect.isclass):
+                    self.property_method_cache[filename].update({clazz_name:{}})
+                    propertyDict = {}
+                    class_attrs = inspect.classify_class_attrs(clazz)
+                    propertyList = list(filter(lambda attrs:attrs.kind == 'property',class_attrs))
+                    for property in propertyList:
+                        propertyDict.update({property.name : []})
+                        if property.object.fget is not None:
+                            propertyDict[property.name].append(property.object.fget.__name__)
+                        if property.object.fset is not None:
+                            propertyDict[property.name].append(property.object.fset.__name__)
+                    self.property_method_cache[filename][clazz_name].update(propertyDict)
+        except ImportError as exc:
+            pass    # ignore this file
             
     if USE_PSYCO_OPTIMIZATION:
         try:

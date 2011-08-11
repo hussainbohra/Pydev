@@ -84,6 +84,17 @@ class PyDBFrame:
             #checks the breakpoint to see if there is a context match in some function
             curr_func_name = frame.f_code.co_name
             
+            class_name = None
+            if frame.f_code.co_argcount > 0:
+                self_argument = frame.f_code.co_varnames[0]  # This *should* be 'self'.
+                class_name = frame.f_locals[self_argument].__class__.__name__
+
+            if class_name:
+                if DictContains(mainDebugger.property_method_cache, filename):
+                    if DictContains(mainDebugger.property_method_cache[filename], class_name):
+                        for key, value in mainDebugger.property_method_cache[filename][class_name].items() :
+                            if curr_func_name in value or curr_func_name == 'encode':
+                                can_skip = True
             #global context is set with an empty name
             if curr_func_name in ('?', '<module>'):
                 curr_func_name = ''
