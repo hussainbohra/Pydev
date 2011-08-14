@@ -329,7 +329,21 @@ public abstract class AbstractScopeAnalyzerVisitor extends VisitorBase{
         	}
         }
         scope.isInMethodDefinition = false;
+
+        //visit annotation
+        if (args.annotation != null){
+        	for(exprType expr : args.annotation){
+        		if(expr != null){
+        			expr.accept(visitor);
+        		}
+        	}
+        }
         
+        //visit the return
+        if(node.returns != null){
+        	node.returns.accept(visitor);
+        }
+
         //visit the body
         if (node.body != null) {
             for (int i = 0; i < node.body.length; i++) {
