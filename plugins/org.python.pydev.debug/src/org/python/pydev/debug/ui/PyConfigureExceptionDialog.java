@@ -234,18 +234,43 @@ public class PyConfigureExceptionDialog extends SelectionDialog {
 	/**
 	 * @param composite
 	 * 
-	 *            Create a new text box and a button, which allows user to add
-	 *            custom exception. Attach a listener to the AddException Button
+	 * Create a new text box and buttons to add or remove custom exceptions.
 	 */
 	private void createCustomExceptionUI(Composite composite) {
+		createExceptionField(composite);
+
+		Composite buttonComposite = new Composite(composite, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 0;
+		layout.marginWidth = 0;
+		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
+		buttonComposite.setLayout(layout);
+		buttonComposite.setLayoutData(new GridData(SWT.END, SWT.TOP, true,
+				false));
+
+		createAddException(buttonComposite);
+		createRemoveException(buttonComposite);
+
+	}
+	/**
+	 * Creates a text box to add a custom exception.
+	 * 
+	 * @param composite
+	 */
+	private void createExceptionField(Composite composite) {
 		addNewExceptionField = new Text(composite, SWT.BORDER);
 		addNewExceptionField.setLayoutData(new GridData(GridData.FILL,
 				GridData.BEGINNING, true, false));
+	}
 
-		Button buttonAdd = new Button(composite, SWT.PUSH);
-		buttonAdd.setLayoutData(new GridData(GridData.END, GridData.END, true,
-				false));
-		buttonAdd.setText("Add Exception");
+	/**
+	 * Creates an Add Exception button and its respective listener.
+	 *
+	 * @param buttonComposite
+	 */
+	private void createAddException(Composite buttonComposite) {
+		Button buttonAdd = createButton(buttonComposite,
+				IDialogConstants.NO_TO_ALL_ID, PyExceptionBreakPointManager.ADD_EXCEPTION_LABEL, false);
 
 		SelectionListener listener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -253,12 +278,28 @@ public class PyConfigureExceptionDialog extends SelectionDialog {
 			}
 		};
 		buttonAdd.addSelectionListener(listener);
+	}
 
+	/**
+	 * Creates a Remove Exception button and its respective listener.
+	 *
+	 * @param buttonComposite
+	 */
+	private void createRemoveException(Composite buttonComposite) {
+		Button buttonRemove = createButton(buttonComposite,
+				IDialogConstants.NO_TO_ALL_ID, PyExceptionBreakPointManager.REMOVE_EXCEPTION_LABEL, false);
+
+		SelectionListener listener = new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				removeCustomExceptions();
+			}
+		};
+		buttonRemove.addSelectionListener(listener);
 	}
 
 	/**
 	 * Add the new exception in the content pane
-	 * 
+	 *
 	 */
 	private void addCustomException() {
 		String customException = addNewExceptionField.getText();
@@ -289,10 +330,31 @@ public class PyConfigureExceptionDialog extends SelectionDialog {
 	}
 
 	/**
+	 * Remove the selected custom exceptions from the content pane
+	 *
+	 */
+	private void removeCustomExceptions() {
+		List<String> customExceptions = PyExceptionBreakPointManager
+				.getInstance().getUserConfiguredExceptions();
+		ArrayList<Object> elementsToRemove = new ArrayList<Object>();
+		for (Object element : selectedElements) {
+			if (customExceptions.contains(element)) {
+				elementsToRemove.add(element);
+			}
+		}
+
+		((PyExceptionListProvider) contentProvider)
+				.removeUserConfiguredExceptions(elementsToRemove);
+		selectedElements.removeAll(elementsToRemove);
+
+		getViewer().remove(elementsToRemove.toArray());
+	}
+
+	/**
 	 * Creates two checkboxes to enable/disable breaking on the exception. 
 	 * The default value for Suspend on caught exception is false 
 	 * The default value for suspend on uncaught exception is false 
-	 * 
+	 *
 	 * @param composite
 	 */
 	private void createCaughtUncaughtCheck(Composite composite) {

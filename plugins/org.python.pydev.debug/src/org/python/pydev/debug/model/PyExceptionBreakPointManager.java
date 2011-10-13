@@ -26,6 +26,8 @@ public class PyExceptionBreakPointManager {
     private static final String CUSTOM_EXCEPTION_FILE_NAME = "custom_exceptions.prefs";
     private static final String BREAK_ON_CAUGHT_EXCEPTION = "caught_exception_state.prefs";
     private static final String BREAK_ON_UNCAUGHT_EXCEPTION = "uncaught_exception_state.prefs";
+	public static final String ADD_EXCEPTION_LABEL = "Add Exception";
+	public static final String REMOVE_EXCEPTION_LABEL = "Remove Exception";
     
     
     private static PyExceptionBreakPointManager pyExceptionBreakPointManager;
@@ -104,7 +106,28 @@ public class PyExceptionBreakPointManager {
 
     
     
-    //Getters
+	/**
+	 * Removes the selected custom exceptions from the list of custom exceptions
+	 */
+	public void removeUserConfiguredExceptions(List<Object> userConfiguredExceptions) {
+		List<String> customExceptions = getUserConfiguredExceptions();
+		customExceptions.removeAll(userConfiguredExceptions);
+
+		String pyExceptionsStr = StringUtils.join(
+				ConfigureExceptionsFileUtils.DELIMITER, customExceptions);
+		ConfigureExceptionsFileUtils.writeToFile(CUSTOM_EXCEPTION_FILE_NAME,
+				pyExceptionsStr, false);
+
+		List<String> exceptionsList = getExceptionsList();
+		exceptionsList.removeAll(userConfiguredExceptions);
+
+		pyExceptionsStr = StringUtils.join(
+				ConfigureExceptionsFileUtils.DELIMITER, exceptionsList);
+		ConfigureExceptionsFileUtils.writeToFile(EXCEPTION_FILE_NAME,
+				pyExceptionsStr, false);
+	}
+
+	//Getters
 
     public String getBreakOnUncaughtExceptions() {
         return ConfigureExceptionsFileUtils.readFromMetadataFile(BREAK_ON_UNCAUGHT_EXCEPTION);

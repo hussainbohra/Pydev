@@ -59,4 +59,9 @@ public class PyExceptionListProvider implements IStructuredContentProvider {
         PyExceptionBreakPointManager.getInstance().addUserConfiguredException(userConfiguredException);
         this.newInput = null;
     }
+	public void removeUserConfiguredExceptions(List<Object> userConfiguredExceptions) {
+		PyExceptionBreakPointManager.getInstance()
+				.removeUserConfiguredExceptions(userConfiguredExceptions);
+		this.newInput = null;
+	}
 }
