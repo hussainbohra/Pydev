@@ -6,6 +6,8 @@ This module holds the constants used for specifying the states of the debugger.
 DEBUG_TRACE_LEVEL = -1
 DEBUG_TRACE_BREAKPOINTS = -1
 
+# User can expose modules from python globals() to evaluate expressions in the expression view
+EXPOSED_GLOBAL_MODULES = ["sys", "gc"]
 
 STATE_RUN = 1
 STATE_SUSPEND = 2
@@ -160,6 +162,22 @@ def GetThreadId(thread):
             _nextThreadIdLock.release()
         
     return thread.__pydevd_id__
+
+#===============================================================================
+# provides the dictionary which will contain modules exposed using
+# EXPOSED_GLOBAL_MODULES
+#===============================================================================
+import pydevd_import_class
+__globals_module_cache = {}
+def get_global_modules():
+    global __globals_module_cache
+    if __globals_module_cache == {} and EXPOSED_GLOBAL_MODULES:
+        for mod in EXPOSED_GLOBAL_MODULES:
+            try:
+                __globals_module_cache.update({mod: pydevd_import_class.ImportName(mod)})
+            except:
+                continue
+    return __globals_module_cache
 
 #===============================================================================
 # Null

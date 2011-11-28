@@ -16,6 +16,7 @@ import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IVariable;
 import org.python.pydev.core.log.Log;
+import org.python.pydev.debug.core.Constants;
 import org.python.pydev.debug.core.PydevDebugPlugin;
 import org.python.pydev.debug.model.remote.AbstractDebuggerCommand;
 import org.python.pydev.debug.model.remote.GetVariableCommand;
@@ -30,7 +31,8 @@ import org.python.pydev.debug.model.remote.ICommandResponseListener;
 public class PyVariableCollection extends PyVariable implements ICommandResponseListener, IVariableLocator {
 
     PyVariable[] variables = new PyVariable[0];
-    IVariable[] waitVariables = null;
+	PyVariableCollection referrers = null;
+	IVariable[] waitVariables = null;
     
     static final int NETWORK_REQUEST_NOT_REQUESTED = 0;
     static final int NETWORK_REQUEST_NOT_ARRIVED = 1;
@@ -52,6 +54,56 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
     }
 
 
+    /**
+     * Initialize a new empty PyVariableCollection (Referrers) under the selected variable
+     * 
+     */
+	public void initializeReferrers() {
+		if (referrers == null) {
+			String value = String.format(Constants.GET_REFERRERS_EXPR,
+					this.name);
+			if (this.type.startsWith(Constants.GET_REFERRERS)) {
+				value = String.format(Constants.GET_REFERRERS_EXPR, this.type);
+			}
+			String type = Constants.EXPRESSION_STRING + Constants.DELIMITER
+					+ value;
+			// locator for referrer will be the current PyVariableCollection
+			referrers = new PyVariableCollection(this.target, "Referrers",
+					type, value, this);
+			if (networkState == NETWORK_REQUEST_ARRIVED) {
+				addReferrersInVariables();
+				target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE,
+						DebugEvent.STATE));
+			}
+		}
+	}
+
+	/**
+	 * Overriding this method to communicate if any expression 
+	 * needs to be evaluated in the variable view.
+	 */
+	public String getPyDBLocation() {
+		if (type.startsWith(Constants.EXPRESSION_STRING)) {
+			return locator.getPyDBLocation() + "\t" + type;
+		} else {
+			return super.getPyDBLocation();
+		}
+	}
+    
+	/**
+	 * Add a new node (Referrers) to the existing variables list
+	 */
+	private void addReferrersInVariables() {
+		PyVariable[] tempVariables = new PyVariable[variables.length + 1];
+		tempVariables[0] = referrers;
+		for (int i = 0; i < variables.length; i++) {
+			tempVariables[i + 1] = variables[i];
+		}
+		synchronized (variables) {
+			variables = tempVariables;
+		}
+	}
+
     private IVariable[] getWaitVariables() {
         if (waitVariables == null) {
             PyVariable waitVar = new PyVariable(target, "wait", "", "for network", locator);
@@ -70,7 +122,9 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
      */
     public void commandComplete(AbstractDebuggerCommand cmd) {
         variables = getCommandVariables(cmd);
-        
+        if (referrers != null){
+        	addReferrersInVariables();
+        }
         networkState = NETWORK_REQUEST_ARRIVED;
         if (fireChangeEvent){
             target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE, DebugEvent.STATE));

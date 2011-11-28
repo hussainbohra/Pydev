@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.python.pydev.core.REF;
+import org.python.pydev.debug.core.Constants;
 import org.python.pydev.debug.core.PydevDebugPlugin;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -123,6 +124,15 @@ public class XMLUtils {
             if (value != null){
                 value = URLDecoder.decode(value, "UTF-8");
             }
+			if (locator instanceof PyVariableCollection
+					&& ((PyVariableCollection) locator).getReferenceTypeName()
+							.startsWith(Constants.EXPRESSION_STRING)) {
+					String index = String.format(Constants.LIST_INDEXER, Integer.parseInt(name));
+					type = ((PyVariableCollection) locator).getValueString()
+							+ index;
+				}
+	        } catch (NumberFormatException e) {
+	            //  This is raised when name is not list index i.e. Integer
             
         } catch (Exception e) {
             throw new RuntimeException(e);

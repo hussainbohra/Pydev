@@ -63,6 +63,14 @@ public interface Constants {
     static final String ATTR_UNITTEST_TESTS = PLUGIN_ID + ".ATTR_UNITTEST_TESTS";
     static final String ATTR_UNITTEST_CONFIGURATION_FILE = PLUGIN_ID + ".ATTR_UNITTEST_CONFIGURATION_FILE";
     static final String PYDEV_CONFIG_RUN = "PYDEV_CONFIG_RUN";
-    
+
+    // Constants for adding any expression in the variable view tree
+    static final String DELIMITER = ":";
+    static final String EXPRESSION_STRING = "EXPRESSION";
+    static final String LIST_INDEXER = "[%s]";
+
+    // Constants for evaluating references in the variable view
+    static final String GET_REFERRERS = "gc.get_referrers";
+    static final String GET_REFERRERS_EXPR = GET_REFERRERS + "(%s)";
     
 }

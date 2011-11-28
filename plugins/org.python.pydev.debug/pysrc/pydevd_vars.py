@@ -336,8 +336,12 @@ def resolveCompoundVariable(thread_id, frame_id, scope, attrs):
         var = frame.f_locals
 
     for k in attrList:
-        type, _typeName, resolver = getType(var)
-        var = resolver.resolve(var, k)
+        if(k.find(":") > -1 and k.split(":")[0] == "EXPRESSION"):
+            # Evaluating expression (if any) in the Variables view
+            var = evaluateExpression(thread_id, frame_id, k.split(":")[1], False)
+        else:
+            type, _typeName, resolver = getType(var)
+            var = resolver.resolve(var, k)
 
     try:
         type, _typeName, resolver = getType(var)
@@ -358,7 +362,7 @@ def evaluateExpression(thread_id, frame_id, expression, doExec):
     #Not using frame.f_globals because of https://sourceforge.net/tracker2/?func=detail&aid=2541355&group_id=85796&atid=577329
     #(Names not resolved in generator expression in method)
     #See message: http://mail.python.org/pipermail/python-list/2009-January/526522.html
-    updated_globals = {}
+    updated_globals = get_global_modules()
     updated_globals.update(frame.f_globals)
     updated_globals.update(frame.f_locals) #locals later because it has precedence over the actual globals
 
