@@ -2,6 +2,7 @@
     resolution/conversion to XML.
 """
 from pydevd_constants import * #@UnusedWildImport
+import gc
 from types import * #@UnusedWildImport
 try:
     from StringIO import StringIO
@@ -338,7 +339,7 @@ def resolveCompoundVariable(thread_id, frame_id, scope, attrs):
     for k in attrList:
         if(k.find(":") > -1 and k.split(":")[0] == "EXPRESSION"):
             # Evaluating expression (if any) in the Variables view
-            var = evaluateExpression(thread_id, frame_id, k.split(":")[1], False)
+            var = eval(k.split(":")[1])
         else:
             type, _typeName, resolver = getType(var)
             var = resolver.resolve(var, k)

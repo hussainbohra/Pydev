@@ -28,7 +28,6 @@ import org.eclipse.ui.progress.IDeferredWorkbenchAdapter;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.eclipse.ui.views.tasklist.ITaskListResourceAdapter;
 import org.python.pydev.core.IPyStackFrame;
-import org.python.pydev.core.log.Log;
 import org.python.pydev.debug.model.remote.AbstractDebuggerCommand;
 import org.python.pydev.debug.model.remote.AbstractRemoteDebugger;
 import org.python.pydev.debug.model.remote.GetFileContentsCommand;
@@ -128,6 +127,26 @@ public class PyStackFrame extends PlatformObject implements IStackFrame, IVariab
         this.variables = locals;
     }
     
+    /**
+     * Replace the variable and update cache with the new variables
+     *
+     * @param oldObject
+     * @param newObject
+     */
+    public void replaceVariables(PyVariable oldObject, PyVariable newObject) {
+		IVariable[] tempVariables = new PyVariable[variables.length];
+		for (int i=0; i< variables.length; i++){
+			if(variables[i].equals(oldObject)){
+				tempVariables[i] = newObject;
+			} else {
+				tempVariables[i] = variables[i];
+			}
+		}
+		synchronized (variables) {
+			this.target.getModificationChecker().verifyModified(this, tempVariables);
+			variables = tempVariables;
+		}
+	}
 
     /**
      * This interface changed in 3.2... we returned an empty collection before, and used the

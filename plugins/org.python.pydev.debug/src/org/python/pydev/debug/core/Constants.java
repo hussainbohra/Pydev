@@ -67,10 +67,9 @@ public interface Constants {
     // Constants for adding any expression in the variable view tree
     static final String DELIMITER = ":";
     static final String EXPRESSION_STRING = "EXPRESSION";
-    static final String LIST_INDEXER = "[%s]";
 
     // Constants for evaluating references in the variable view
-    static final String GET_REFERRERS = "gc.get_referrers";
-    static final String GET_REFERRERS_EXPR = GET_REFERRERS + "(%s)";
+    static final String PYTHON_VARIABLE = "var";
+    static final String GET_REFERRERS_EXPR = "gc.get_referrers(%s)";
     
 }

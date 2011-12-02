@@ -124,16 +124,6 @@ public class XMLUtils {
             if (value != null){
                 value = URLDecoder.decode(value, "UTF-8");
             }
-			if (locator instanceof PyVariableCollection
-					&& ((PyVariableCollection) locator).getReferenceTypeName()
-							.startsWith(Constants.EXPRESSION_STRING)) {
-					String index = String.format(Constants.LIST_INDEXER, Integer.parseInt(name));
-					type = ((PyVariableCollection) locator).getValueString()
-							+ index;
-				}
-	        } catch (NumberFormatException e) {
-	            //  This is raised when name is not list index i.e. Integer
-            
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

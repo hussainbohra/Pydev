@@ -185,5 +185,11 @@ public class PyVariable extends PlatformObject implements IVariable, IValue, IVa
         return new ChangeVariableCommand(dbg, getPyDBLocation(), expression);
     }
 
-
+    /**
+     * Returns a locator for Variable
+     * @return
+     */
+	public IVariableLocator getLocator() {
+		return locator;
+	}
 }

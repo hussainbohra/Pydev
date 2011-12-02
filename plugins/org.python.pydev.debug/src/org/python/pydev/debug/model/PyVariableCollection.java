@@ -56,26 +56,29 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
 
     /**
      * Initialize a new empty PyVariableCollection (Referrers) under the selected variable
-     * 
+     * Value -> gc.get_referrers(name)
+     * Type -> EXPRESSION
+     * Locator for referrer will be the current PyVariableCollection
      */
 	public void initializeReferrers() {
 		if (referrers == null) {
 			String value = String.format(Constants.GET_REFERRERS_EXPR,
 					this.name);
-			if (this.type.startsWith(Constants.GET_REFERRERS)) {
-				value = String.format(Constants.GET_REFERRERS_EXPR, this.type);
-			}
-			String type = Constants.EXPRESSION_STRING + Constants.DELIMITER
-					+ value;
-			// locator for referrer will be the current PyVariableCollection
+			String type = Constants.EXPRESSION_STRING;
 			referrers = new PyVariableCollection(this.target, "Referrers",
 					type, value, this);
 			if (networkState == NETWORK_REQUEST_ARRIVED) {
 				addReferrersInVariables();
-				target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE,
-						DebugEvent.STATE));
 			}
 		}
+	}
+
+	/**
+	 * Trigger an update event to referesh variables in the variable view
+	 */
+	public void fireEvent() {
+		target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE,
+				DebugEvent.STATE));
 	}
 
 	/**
@@ -83,21 +86,51 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
 	 * needs to be evaluated in the variable view.
 	 */
 	public String getPyDBLocation() {
-		if (type.startsWith(Constants.EXPRESSION_STRING)) {
-			return locator.getPyDBLocation() + "\t" + type;
+		if (type.equals(Constants.EXPRESSION_STRING)) {
+			String expression = Constants.EXPRESSION_STRING
+					+ Constants.DELIMITER
+					+ String.format(Constants.GET_REFERRERS_EXPR,
+							Constants.PYTHON_VARIABLE);
+			return locator.getPyDBLocation() + "\t" + expression;
 		} else {
 			return super.getPyDBLocation();
 		}
 	}
-    
+
 	/**
-	 * Add a new node (Referrers) to the existing variables list
+	 * Adds a new node (Referrers) to the existing variables list
 	 */
-	private void addReferrersInVariables() {
+	public void addReferrersInVariables() {
 		PyVariable[] tempVariables = new PyVariable[variables.length + 1];
 		tempVariables[0] = referrers;
-		for (int i = 0; i < variables.length; i++) {
-			tempVariables[i + 1] = variables[i];
+		System.arraycopy(variables, 0, tempVariables, 1, variables.length);
+		synchronized (variables) {
+			variables = tempVariables;
+		}
+	}
+
+	/**
+	 * Update the network state
+	 */
+	public void updateNetworkState(int state){
+		if (networkState != state){
+			networkState = state;
+		}
+	}
+
+	/**
+	 *
+	 * @param oldObject
+	 * @param newObject
+	 */
+	public void replaceVariables(PyVariable oldObject, PyVariable newObject){
+		PyVariable[] tempVariables = new PyVariable[variables.length];
+		for (int i=0; i< variables.length; i++){
+			if(variables[i].equals(oldObject)){
+				tempVariables[i] = newObject;
+			} else {
+				tempVariables[i] = variables[i];
+			}
 		}
 		synchronized (variables) {
 			variables = tempVariables;
