@@ -44,7 +44,9 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
     int networkState = NETWORK_REQUEST_NOT_REQUESTED; // Network request state: 0 did not request, 1 requested, 2 requested & arrived
     
     private boolean fireChangeEvent = true;
-    
+
+    private int currentRange = 0;
+
     public PyVariableCollection(AbstractDebugTarget target, String name, String type, String value, IVariableLocator locator) {
         super(target, name, type, value, locator);
     }
@@ -74,7 +76,7 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
 	}
 
 	/**
-	 * Trigger an update event to referesh variables in the variable view
+	 * Trigger an update event to refresh variables in the variable view
 	 */
 	public void fireEvent() {
 		target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE,
@@ -88,11 +90,19 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
 	public String getPyDBLocation() {
 		if (type.equals(Constants.EXPRESSION_STRING)) {
 			String expression = Constants.EXPRESSION_STRING
+					+ Constants.DELIMITER + currentRange
 					+ Constants.DELIMITER
 					+ String.format(Constants.GET_REFERRERS_EXPR,
 							Constants.PYTHON_VARIABLE);
 			return locator.getPyDBLocation() + "\t" + expression;
-		} else {
+		} else if (Constants.MORE.equals(name)){
+			// expected value: str: next-'x', items remaining: 'y'
+			currentRange = Integer.parseInt(value.substring(
+					value.indexOf("-") + 1, value.indexOf(",")));
+			((PyVariableCollection) locator).setCurrentRange(currentRange);
+			return ((PyVariableCollection) locator).getPyDBLocation();
+		}
+		else {
 			return super.getPyDBLocation();
 		}
 	}
@@ -154,19 +164,39 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
      * Received when the command has been completed.
      */
     public void commandComplete(AbstractDebuggerCommand cmd) {
-        variables = getCommandVariables(cmd);
+		if (Constants.MORE.equals(name)) {
+			PyVariableCollection parent = ((PyVariableCollection) this.locator);
+			try {
+				PyVariable[] currentVariables = (PyVariable[]) parent.getVariables();
+				PyVariable[] moreVariables = getCommandVariables(cmd);
+				PyVariable[] tempVariables = new PyVariable[currentVariables.length - 1 + moreVariables.length];
+				System.arraycopy(currentVariables, 0, tempVariables, 0, currentVariables.length - 1);
+				System.arraycopy(moreVariables, 0, tempVariables, currentVariables.length - 1, moreVariables.length);
+				parent.setVariables(tempVariables);
+				parent.fireEvent();
+			} catch (DebugException e) {
+				e.printStackTrace();
+			}
+		} else {
+			variables = getCommandVariables(cmd);
+		}
         if (referrers != null){
         	addReferrersInVariables();
         }
         networkState = NETWORK_REQUEST_ARRIVED;
         if (fireChangeEvent){
-            target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE, DebugEvent.STATE));
+            fireEvent();
         }
     }
 
-    public PyVariable[] getCommandVariables(AbstractDebuggerCommand cmd) {
-        return getCommandVariables(cmd, target, this);
-    }
+	public PyVariable[] getCommandVariables(AbstractDebuggerCommand cmd) {	
+		IVariableLocator locator = this;
+		if(Constants.MORE.equals(name)){
+			// locator for more... should be parent of current variable collection
+			locator = this.getLocator();
+		}
+		return getCommandVariables(cmd, target, locator);
+	}
     
     /**
      * @return a list of variables resolved for some command
@@ -238,5 +268,21 @@ public class PyVariableCollection extends PyVariable implements ICommandResponse
 
 	public AbstractDebugTarget getTarget() {
 		return target;
+	}
+
+	/**
+	 * Update the Range
+	 * @param currentRange
+	 */
+	public void setCurrentRange(int currentRange) {
+		this.currentRange = currentRange;
+	}
+
+	/**
+	 * Update the variables
+	 * @param variables
+	 */
+	public void setVariables(PyVariable[] variables) {
+		this.variables = variables;
 	}
 }

@@ -2,7 +2,8 @@
     resolution/conversion to XML.
 """
 from pydevd_constants import * #@UnusedWildImport
-import gc
+# This import (gc) exists solely to support the GET_REFERRERS_EXPR (gc.get_referrers) expression declared in Java 
+import gc #@UnusedImport
 from types import * #@UnusedWildImport
 try:
     from StringIO import StringIO
@@ -323,6 +324,53 @@ Current     thread_id:%s, available frames:
 
     return frameFound
 
+class VariableReferenceCache:
+    """ This will keep a cache of object referrers. Reason to keep this cache
+    is that referrers list can change between the time the referrers list is
+    first generated and when an individual entry is expanded.
+    cache = {
+        thread_id_1: {frame_id_1:{variable_path_1: [referrers_list],
+                                   variable_path_2: [referrers_list],
+                                 },
+                      frame_id_2:{variable_path_1: [referrers_list],
+                                  }
+                      }
+        thread_id_2: .....
+        }
+
+    variable_path: 'self\tobj\tnamelist\tname'
+    """
+    lock = threading.Lock()
+    variableReferenceCache = {}
+
+def updateReferenceCache(thread_id, frame_id, variablePath, referrers):
+    """ add referrers in the variable cache"""
+    if not DictContains(VariableReferenceCache.variableReferenceCache, thread_id):
+        VariableReferenceCache.variableReferenceCache[thread_id] = {}
+    frameDict = VariableReferenceCache.variableReferenceCache[thread_id]
+
+    if not DictContains(frameDict, frame_id):
+        frameDict[frame_id] = {}
+
+    frameDict[frame_id].update({variablePath : referrers})
+
+def getFromReferenceCache(thread_id, frame_id, variablePath):
+    """ return None if referrers are not available in the cache
+    """
+    referrers = None
+    if DictContains(VariableReferenceCache.variableReferenceCache, thread_id):
+        frameDict = VariableReferenceCache.variableReferenceCache[thread_id]
+        if DictContains(frameDict, frame_id):
+            variableDict = frameDict[frame_id]
+            if DictContains(variableDict, variablePath):
+                referrers = variableDict[variablePath]
+    return referrers
+
+def resetReferenceCache(thread_id):
+    """ reset the cache for provided thread_id"""
+    if DictContains(VariableReferenceCache.variableReferenceCache, thread_id):
+        VariableReferenceCache.variableReferenceCache[thread_id] = {}
+
 def resolveCompoundVariable(thread_id, frame_id, scope, attrs):
     """ returns the value of the compound variable as a dictionary"""
     frame = findFrame(thread_id, frame_id)
@@ -330,19 +378,44 @@ def resolveCompoundVariable(thread_id, frame_id, scope, attrs):
         return {}
     
     attrList = attrs.split('\t')
-    if scope == "GLOBAL":
-        var = frame.f_globals
-        del attrList[0] # globals are special, and they get a single dummy unused attribute
+    if scope == 'EXPRESSION':
+        for count in range(len(attrList)):
+            if count == 0:
+                # An Expression can be in any scope (globals/locals), therefore it needs to evaluated as an expression
+                var = evaluateExpression(thread_id, frame_id, attrList[count], False)
+            else:
+                type, _typeName, resolver = getType(var)
+                var = resolver.resolve(var, attrList[count])
     else:
-        var = frame.f_locals
-
-    for k in attrList:
-        if(k.find(":") > -1 and k.split(":")[0] == "EXPRESSION"):
-            # Evaluating expression (if any) in the Variables view
-            var = eval(k.split(":")[1])
+        isExpression = False
+        currentRange = 0
+        if scope == "GLOBAL":
+            var = frame.f_globals
+            del attrList[0] # globals are special, and they get a single dummy unused attribute
         else:
-            type, _typeName, resolver = getType(var)
-            var = resolver.resolve(var, k)
+            var = frame.f_locals
+
+        for i in range(len(attrList)):
+            variable = attrList[i] # Variable Name
+            if(":" in variable and variable.split(":")[0] == "EXPRESSION"): # Expression among variable
+                isExpression = True
+                currentRange = int(variable.split(":")[-2])
+                expressionKey = "\t".join(attrList[:i])
+
+                if(getFromReferenceCache(thread_id, frame_id, expressionKey) == None
+                        or currentRange == -1): # -1: refresh referrers in cache
+                    currentRange = 0    # re-initialize current range
+                    var = eval(variable.split(":")[-1])
+                    updateReferenceCache(thread_id, frame_id, expressionKey, var)
+                else:
+                    var = getFromReferenceCache(thread_id, frame_id, expressionKey)
+            else:
+                isExpression = False
+                type, _typeName, resolver = getType(var)
+                var = resolver.resolve(var, variable)
+
+        if isExpression and getType(var)[0] == list:
+            return resolveExpression(var, currentRange)
 
     try:
         type, _typeName, resolver = getType(var)
@@ -444,6 +517,25 @@ def changeAttrExpression(thread_id, frame_id, attr, expression):
         traceback.print_exc()
 
 
+def resolveExpression(var, currentRange):
+    """This method resolves expression values and sends limited items per request
+    """
+    d = {}
+    isMore = False
+    totalElements = len(var)
+    format = '%0' + str(len(str(totalElements))) + 'd'
+    if (len(var) > currentRange + MAX_ITEMS_PER_REQUEST):
+        var = var[currentRange:currentRange + MAX_ITEMS_PER_REQUEST]
+        isMore = True
+    else:
+        var = var[currentRange:]
+    for i, item in enumerate(var):
+        d[ format % (i+currentRange) ] = item
+
+    if isMore:
+        d["more..."] = "next-%s, items remaining: %s"%(str(currentRange + MAX_ITEMS_PER_REQUEST),
+                                                         str(totalElements - (currentRange + MAX_ITEMS_PER_REQUEST)))
+    return d
 
 
 

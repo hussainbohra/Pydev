@@ -40,6 +40,7 @@ except AttributeError:
 #the communication slower -- as the variables are being gathered lazily in the latest version of eclipse,
 #this value was raised from 200 to 1000.
 MAXIMUM_VARIABLE_REPRESENTATION_SIZE = 1000
+MAX_ITEMS_PER_REQUEST = 100
 
 import threading 
 import os

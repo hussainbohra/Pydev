@@ -830,40 +830,60 @@
 </extension>
 <!-- Extension points for BreakOnException -->
 
-   <extension point="org.eclipse.ui.commands">
-       <command
-            name="All References"
-            id="org.python.pydev.debug.ui.variable.reference"
-            defaultHandler="org.python.pydev.debug.ui.actions.PyVariableReferenceHandler"/>
-   </extension>
+<!-- extension points to collect python object references and to refresh the referrences -->
+<extension point="org.eclipse.ui.commands">
+	<command
+		name="All References"
+        id="org.python.pydev.debug.ui.variable.reference"
+        defaultHandler="org.python.pydev.debug.ui.actions.PyVariableReferenceHandler"/>
+</extension>
    
-   
-      <extension point="org.eclipse.ui.menus">
-          <menuContribution
-               locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-            <command
-               commandId="org.python.pydev.debug.ui.variable.reference"
-               icon="icons/reference_obj.gif"
-               label="All References"
-               helpContextId="variable_reference_action_context">
-               <visibleWhen>
+<extension point="org.eclipse.ui.commands">
+	<command
+		name="Refresh"
+        id="org.python.pydev.debug.ui.variable.refresh"
+        defaultHandler="org.python.pydev.debug.ui.actions.PyVariableRefreshHandler"/>
+</extension>
+
+<extension point="org.eclipse.ui.menus">
+	<menuContribution
+		locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+        <command
+			commandId="org.python.pydev.debug.ui.variable.reference"
+            icon="icons/reference_obj.gif"
+            label="All References"
+            helpContextId="variable_reference_action_context">
+            <visibleWhen>
                 <and>
-                    <with variable="org.eclipse.core.runtime.Platform">
-                    <test property="org.eclipse.core.runtime.bundleState"
-                        args="org.eclipse.debug.ui"
-                        value="ACTIVE"/>
-                </with>
-                <with variable="selection">
+					<with variable="selection">
                     <count value="+"/>
                     <iterate>
-                        <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                        <test property="org.eclipse.debug.ui.canCreateWatchExpression" value="true"/>
+                        <instanceof value="org.eclipse.debug.core.model.IVariable"/>
                     </iterate>
-                </with>             
+					</with>
+                </and>
+            </visibleWhen>
+		</command>
+	</menuContribution>
+    <menuContribution
+		locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+        <command
+			commandId="org.python.pydev.debug.ui.variable.refresh"
+            icon="icons/refresh.png"
+            label="Refresh"
+            helpContextId="variable_refresh_action_context">
+            <visibleWhen>
+                <and>
+					<with variable="selection">
+                    <count value="+"/>
+                    <iterate>
+                        <instanceof value="org.eclipse.debug.core.model.IVariable"/>
+                    </iterate>
+					</with>
                 </and>
                </visibleWhen>
-            </command>
-          </menuContribution>
-   </extension> 	
+		</command>
+	</menuContribution>
+</extension>
 </plugin>
 

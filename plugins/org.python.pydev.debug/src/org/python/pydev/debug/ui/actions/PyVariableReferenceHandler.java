@@ -25,7 +25,7 @@ import org.python.pydev.debug.model.PyVariableCollection;
 /**
  * @author hussain.bohra
  *
- * Handler for variable view -> context menu -> All References. 
+ * Handler for variable view -> context menu -> All References.
  * If selected variable is a tree node i.e. PyVariableCollection object
  * 	it creates a new node 'Referrer' inside the existing tree
  *

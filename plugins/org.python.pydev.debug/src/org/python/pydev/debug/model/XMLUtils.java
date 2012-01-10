@@ -128,11 +128,11 @@ public class XMLUtils {
             throw new RuntimeException(e);
         }
         String isContainer = attributes.getValue("isContainer");
-        if ("True".equals(isContainer)){
-            var = new PyVariableCollection(target, name, type, value, locator);
-        }else{ 
-            var = new PyVariable(target,  name, type, value, locator);
-        }
+		if ("True".equals(isContainer) || Constants.MORE.equals(name)) {
+			var = new PyVariableCollection(target, name, type, value, locator);
+		} else {
+			var = new PyVariable(target, name, type, value, locator);
+		}
         return var;
     }
 

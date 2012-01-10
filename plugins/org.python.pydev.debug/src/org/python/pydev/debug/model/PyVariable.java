@@ -192,4 +192,12 @@ public class PyVariable extends PlatformObject implements IVariable, IValue, IVa
 	public IVariableLocator getLocator() {
 		return locator;
 	}
+
+	/**
+	 * Trigger an update event to refresh variables in the variable view
+	 */
+	public void fireEvent() {
+		target.fireEvent(new DebugEvent(this, DebugEvent.CHANGE,
+				DebugEvent.STATE));
+	}
 }

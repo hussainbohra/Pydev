@@ -65,6 +65,7 @@ public interface Constants {
     static final String PYDEV_CONFIG_RUN = "PYDEV_CONFIG_RUN";
 
     // Constants for adding any expression in the variable view tree
+    static final String MORE = "more...";
     static final String DELIMITER = ":";
     static final String EXPRESSION_STRING = "EXPRESSION";
 

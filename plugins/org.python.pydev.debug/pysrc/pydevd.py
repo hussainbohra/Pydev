@@ -443,6 +443,8 @@ class PyDB:
                     #Yes, thread suspend is still done at this point, not through an internal command!
                     t = PydevdFindThreadById(text)
                     if t: 
+                        # Reset reference cache on thread suspend
+                        pydevd_vars.resetReferenceCache(text)
                         additionalInfo = None
                         try:
                             additionalInfo = t.additionalInfo
