@@ -171,20 +171,20 @@ public class NodeUtilsTest extends PyParserTestBase {
         		"	Simple().m1() \n");
         
         // Source And Target are in Same Method
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 3, 4));
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 10, 8));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 3, 4, false));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 10, 8, false));
         // Source And Target are in Different Method
-        assertFalse(NodeUtils.isValidContextForSetNext(ast, 4, 16));
+        assertFalse(NodeUtils.isValidContextForSetNext(ast, 4, 16, false));
         // Source And Target are in Same Method. Target is inside For/While/Try..Except/Try..Finally
-        assertFalse(NodeUtils.isValidContextForSetNext(ast, 4, 7));
-        assertFalse(NodeUtils.isValidContextForSetNext(ast, 13, 18));
-        assertFalse(NodeUtils.isValidContextForSetNext(ast, 15, 17));
+        assertFalse(NodeUtils.isValidContextForSetNext(ast, 4, 7, false));
+        assertFalse(NodeUtils.isValidContextForSetNext(ast, 13, 18, false));
+        assertFalse(NodeUtils.isValidContextForSetNext(ast, 15, 17, false));
         // Source And Target are in Same Method. Source is inside For/While/Try..Except/Try..Finally
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 7, 4));
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 18, 13));
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 17, 15));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 7, 4, false));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 18, 13, false));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 17, 15, false));
         // Source And Target are in Global Context
-        assertTrue(NodeUtils.isValidContextForSetNext(ast, 25, 26));
+        assertTrue(NodeUtils.isValidContextForSetNext(ast, 25, 26, false));
     }
     
     private void checkEndLine(SimpleNode ast1, int endLine) {

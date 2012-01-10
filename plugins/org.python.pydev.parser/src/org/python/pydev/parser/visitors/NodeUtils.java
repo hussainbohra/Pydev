@@ -810,11 +810,17 @@ public class NodeUtils {
 	 * @return
 	 */
 	public static boolean isValidContextForSetNext(SimpleNode ast,
-			int sourceLine, int targetLine) {
+			int sourceLine, int targetLine, boolean verifyExecutionContext) {
 		String sourceFunctionName = NodeUtils.getContextName((sourceLine - 1),
 				ast);
 		String targetFunctionName = NodeUtils.getContextName(targetLine, ast);
 		if (compareMethodName(sourceFunctionName, targetFunctionName)) {
+			if (verifyExecutionContext
+					&& !(NodeUtils.isContextValidForExecution(
+							sourceFunctionName, ast))) {
+				return false;
+			}
+
 			ASTEntry sourceAST = NodeUtils.getLoopContextName(sourceLine, ast);
 			ASTEntry targetAST = NodeUtils.getLoopContextName(targetLine + 1,
 					ast);
@@ -871,6 +877,40 @@ public class NodeUtils {
 				&& sourceMethodName.equals(targetMethodName))
 			return true;
 		return false;
+	}
+
+	/**
+	 * determines if any try..finally block exists in the context of current method.
+	 * Stackless python bug: http://www.stackless.com/pipermail/stackless/2011-September/005133.html
+	 *
+	 * @param sourceFunctionName
+	 * @param ast
+	 * @return
+	 */
+	public static boolean isContextValidForExecution(String sourceFunctionName,
+			SimpleNode ast) {
+		ASTEntry currentMethod = null;
+		EasyASTIteratorWithLoop visitor = EasyASTIteratorWithLoop.create(ast);
+		Iterator<ASTEntry> functionIterator = visitor.getMethodsIterator();
+		while (functionIterator.hasNext()) {
+			ASTEntry entry = functionIterator.next();
+			String methodName = NodeUtils.getFullMethodName(entry);
+			if (compareMethodName(methodName, sourceFunctionName)) {
+				currentMethod = entry;
+				break;
+			}
+		}
+
+		Iterator<ASTEntry> tryFinallyIterator = visitor.getTryFinallyIterator();
+		while (tryFinallyIterator.hasNext()) {
+			ASTEntry entry = tryFinallyIterator.next();
+			if (entry.node.beginLine > currentMethod.node.beginLine
+					&& entry.endLine < currentMethod.endLine) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

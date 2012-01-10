@@ -22,10 +22,12 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.python.pydev.debug.ui.PyEditSetNextAdapterFactory;
 
 /**
  * @author Hussain Bohra
  */
+@SuppressWarnings("restriction")
 public class RetargetSetNextAction extends RetargetAction {
 
 	private DebugContextListener fContextListener = new DebugContextListener();
@@ -67,8 +69,9 @@ public class RetargetSetNextAction extends RetargetAction {
 
 	@Override
 	protected String getOperationUnavailableMessage() {
-		// TODO Auto-generated method stub
-		return null;
+		String errorMessage = "The operation is unavailable on the current selection. " +
+				"Please place the cursor on valid line to set next.";
+		return errorMessage;
 	}
 
 	@Override
@@ -79,12 +82,30 @@ public class RetargetSetNextAction extends RetargetAction {
 				selection, fTargetElement);
 
 		if (result == false) {
-			IStatus status = new Status(
-					IStatus.WARNING,
-					DebugUIPlugin.getUniqueIdentifier(),
-					"Unable to set the next statement to this location. The next statement cannot be set to another function/loop.");
-			DebugUIPlugin.errorDialog(DebugUIPlugin.getShell(), DebugUIPlugin
-					.removeAccelerators("Set Next Statement"), "Error", status);
+			displayErrorDialog();
+		}
+	}
+
+	/**
+	 * execute set next statement from the ruler context menu.
+	 *
+	 * @param targetLine
+	 * @throws CoreException
+	 */
+	public void performAction(int targetLine) throws CoreException {
+		if (isTargetEnabled()) {
+			ISetNextTarget target = PyEditSetNextAdapterFactory
+					.getPySetNextTarget();
+			boolean result = ((ISetNextTarget) target).setNextToLine(
+					getActivePart(), targetLine, fTargetElement);
+
+			if (result == false) {
+				displayErrorDialog();
+			}
+		} else {
+			IStatus status = new Status(IStatus.INFO, DebugUIPlugin.getUniqueIdentifier(), getOperationUnavailableMessage());
+			DebugUIPlugin.errorDialog(DebugUIPlugin.getShell(), DebugUIPlugin.removeAccelerators(getAction().getText()), getOperationUnavailableMessage(), status);
+
 		}
 	}
 
@@ -113,4 +134,17 @@ public class RetargetSetNextAction extends RetargetAction {
 		ISelection activeContext = service.getActiveContext();
 		fContextListener.contextActivated(activeContext);
 	}
+
+	/**
+	 * display error dialog incase of invalid target location
+	 */
+	private void displayErrorDialog() {
+		IStatus status = new Status(
+				IStatus.WARNING,
+				DebugUIPlugin.getUniqueIdentifier(),
+				"Unable to set the next statement to this location. The next statement cannot be set to another function/loop.");
+		DebugUIPlugin.errorDialog(DebugUIPlugin.getShell(), DebugUIPlugin
+				.removeAccelerators("Set Next Statement"), "Error", status);
+	}
+
 }

@@ -79,6 +79,15 @@ public class EasyASTIteratorWithLoop extends EasyAstIteratorBase {
 	}
 
 	/**
+	 *
+	 * @return an iterator for For, While,TryExcept, TryFinally and With
+	 *         definitions
+	 */
+	public Iterator<ASTEntry> getTryFinallyIterator() {
+		return getIterator(new Class[] { TryFinally.class });
+	}
+
+	/**
 	 * Creates the iterator and traverses the passed root so that the results
 	 * can be gotten.
 	 */

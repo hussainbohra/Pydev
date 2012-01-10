@@ -219,6 +219,10 @@ public abstract class AbstractPydevPrefs extends PreferencePage implements IWork
     
     public static final String OPERATORS_STYLE = "OPERATORS_STYLE";
     public static final int DEFAULT_OPERATORS_STYLE = SWT.NORMAL;
+
+    public static final String BLOCK_SET_NEXT = "BLOCK_SET_NEXT";
+    public static final int DEFAULT_BLOCK_SET_NEXT = SWT.NORMAL;
+
     /**
      * Defaults
      */

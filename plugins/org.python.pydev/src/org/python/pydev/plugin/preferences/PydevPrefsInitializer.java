@@ -104,6 +104,7 @@ public class PydevPrefsInitializer  extends AbstractPreferenceInitializer{
         
         //no UI
         node.putInt(PydevEditorPrefs.CONNECT_TIMEOUT, PydevEditorPrefs.DEFAULT_CONNECT_TIMEOUT);
+        node.putInt(PydevEditorPrefs.BLOCK_SET_NEXT, PydevEditorPrefs.DEFAULT_BLOCK_SET_NEXT);
         
         
         //pydev todo tasks

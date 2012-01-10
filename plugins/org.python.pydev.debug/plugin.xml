@@ -631,6 +631,15 @@
       </page>
 </extension>
 
+<extension point="org.eclipse.ui.preferencePages">
+      <page
+            name="Set Next Statement"
+            category="org.python.pydev.prefs.debugPage"
+            class="org.python.pydev.debug.ui.SetNextPrefsPage"
+            id="org.python.pydev.prefs.debugPage.SetNextPrefsPage">
+      </page>
+</extension>
+
 <extension point="org.python.pydev.pydev_pyedit_listener">
 	<pyedit_listener_participant class="org.python.pydev.debug.ui.PyEditBreakpointSync"/>
 </extension>
@@ -741,13 +750,6 @@
            id="org.python.pydev.debug.toolbar.view.setnext">
          </command>
       </menuContribution>
-      <menuContribution
-        locationURI="popup:org.python.pydev.debug.PyEditPopupActions?after=additions">
-     	<command
-           commandId="org.python.pydev.debug.setnext"
-           label="Set Next Statement">
-     	</command>
-      </menuContribution>
     </extension>
    <extension point="org.eclipse.ui.bindings">
    <key
@@ -775,7 +777,25 @@
 			<adapter type="org.python.pydev.debug.ui.actions.ISetNextTarget"/>
          </factory>
     </extension> 
- 
+<!-- Set Next Statement in the ruler context menu -->
+<extension
+	point="org.eclipse.ui.popupMenus">
+    <viewerContribution
+		targetID="#AbstractTextEditorRulerContext"
+        id="org.python.pydev.debug.popup.setnext">
+        <menu
+			label="Set Next Statement"
+            path="additions"
+            id="org.python.pydev.debug.setnext.menu">
+         </menu>
+         <action
+               label="Set Next Statement"
+               class="org.python.pydev.debug.ui.actions.PythonSetNextRulerActionDelegate"
+               menubarPath="org.python.pydev.debug.setnext.menu"
+               id="org.python.pydev.debug.popup.setnext.action">
+         </action>
+    </viewerContribution>
+</extension>
 
  <!-- Extension points for BreakOnException -->
 <extension 
