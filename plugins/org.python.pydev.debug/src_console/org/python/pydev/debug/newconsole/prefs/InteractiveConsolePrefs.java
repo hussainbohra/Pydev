@@ -65,7 +65,9 @@ public class InteractiveConsolePrefs extends FieldEditorPreferencePage implement
         
         addField(new BooleanFieldEditor(PydevConsoleConstants.INTERACTIVE_CONSOLE_CONNECT_VARIABLE_VIEW, 
                 "Connect console to Variables Debug View?", BooleanFieldEditor.SEPARATE_LABEL, p));
-        
+
+        addField(new BooleanFieldEditor(PydevConsoleConstants.DEBUG_CONSOLE_REFRESH_VARIABLES_ON_SEND_COMMAND, 
+                "Refresh variable view when an evaluate\ncommand is sent from the debug console?", BooleanFieldEditor.SEPARATE_LABEL, p));
     }
 
     public void init(IWorkbench workbench) {

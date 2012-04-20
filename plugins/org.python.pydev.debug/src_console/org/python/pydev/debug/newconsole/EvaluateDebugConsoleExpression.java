@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.python.pydev.core.docutils.StringUtils;
 import org.python.pydev.core.log.Log;
+import org.python.pydev.debug.core.PydevDebugPlugin;
 import org.python.pydev.debug.model.AbstractDebugTarget;
 import org.python.pydev.debug.model.PyStackFrame;
 import org.python.pydev.debug.model.remote.AbstractDebuggerCommand;
@@ -52,7 +53,7 @@ public class EvaluateDebugConsoleExpression implements ICommandResponseListener 
         AbstractDebuggerCommand cmd = new EvaluateConsoleExpressionCommand(target, locator, new ICommandResponseListener() {
 
             public void commandComplete(AbstractDebuggerCommand cmd) {
-                frame.forceGetNewVariables();
+//                frame.forceGetNewVariables();
                 EvaluateDebugConsoleExpression.this.commandComplete(cmd);
             }
         });
@@ -107,6 +108,18 @@ public class EvaluateDebugConsoleExpression implements ICommandResponseListener 
     private String getLocator(String... locators) {
         return StringUtils.join("\t", locators);
     }
+
+	private static boolean refreshVariableOnSendCommand() {
+		PydevDebugPlugin plugin = PydevDebugPlugin.getDefault();
+		if (plugin != null) {
+			return plugin
+					.getPreferenceStore()
+					.getBoolean(
+							PydevConsoleConstants.DEBUG_CONSOLE_REFRESH_VARIABLES_ON_SEND_COMMAND);
+		} else {
+			return PydevConsoleConstants.DEFAULT_DEBUG_CONSOLE_REFRESH_VARIABLES_ON_SEND_COMMAND;
+		}
+	}
 
     /**
      * This class represent the console message to be displayed in the debug console. 
