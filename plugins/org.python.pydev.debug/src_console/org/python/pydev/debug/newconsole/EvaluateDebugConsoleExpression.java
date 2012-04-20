@@ -53,7 +53,9 @@ public class EvaluateDebugConsoleExpression implements ICommandResponseListener 
         AbstractDebuggerCommand cmd = new EvaluateConsoleExpressionCommand(target, locator, new ICommandResponseListener() {
 
             public void commandComplete(AbstractDebuggerCommand cmd) {
-//                frame.forceGetNewVariables();
+            	if (refreshVariableOnSendCommand()){
+            		frame.forceGetNewVariables();
+            	}
                 EvaluateDebugConsoleExpression.this.commandComplete(cmd);
             }
         });
