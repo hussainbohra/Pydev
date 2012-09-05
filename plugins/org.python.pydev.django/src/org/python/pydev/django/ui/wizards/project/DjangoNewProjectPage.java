@@ -6,6 +6,8 @@
  */
 package org.python.pydev.django.ui.wizards.project;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.swt.widgets.Composite;
@@ -24,6 +26,9 @@ public class DjangoNewProjectPage extends NewProjectNameAndLocationWizardPage {
      * @param pageName
      *            the name of this page
      */
+
+    private static Pattern DJANGO_PROJECT_NAME_PATTERN = Pattern.compile("([A-Za-z0-9\\_]+)");
+
     public DjangoNewProjectPage(String pageName) {
         super(pageName);
         setTitle("PyDev Django Project");
@@ -91,6 +96,13 @@ public class DjangoNewProjectPage extends NewProjectNameAndLocationWizardPage {
             setErrorMessage("When creating a Django project it cannot be named Django because of conflicts with the default Django install.");
             return false;
         }
+
+        if (!DJANGO_PROJECT_NAME_PATTERN.matcher(projectName).matches()){
+            setErrorMessage(projectName
+                    + "Error: '" + projectName + "' is not a valid project name. Please use only numbers, letters and underscores.");
+            return false;
+        }
+
         return true;
     }
 
